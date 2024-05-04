@@ -93,7 +93,6 @@ def shooting_method(dt, T, n, v0, tol):
     x = []
     y = []
 
-    
     z = np.array([0, 0, v[0], v[1]])
     for i in range(1, int(n)):
       z_next = RK4(ts[i], z, dt, f)
@@ -101,20 +100,15 @@ def shooting_method(dt, T, n, v0, tol):
       x.append(ts[i])
       y.append(z[0])
 
-    #step 3 
     eta_0 = np.array([0, 0, 0, 0, 1, 0, 0, 1])
-
     eta = eta_0
     for i in range(1, int(n)):
       eta_next = RK4(ts[i], eta, dt, f_eta)
       eta = eta_next
 
-    #step 4
-    #print(eta)
     J = np.array([[eta[0], eta[1]],
                 [eta[2], eta[3]]])
     
-    #step 5 
     E = np.array([z[0], z[1]])
     v_next = v - np.linalg.inv(J)@E
     v = v_next
