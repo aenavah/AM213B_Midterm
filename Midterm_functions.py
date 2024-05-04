@@ -54,30 +54,30 @@ def RK3_AbsoluteStabilityRegion(A, b, h):
 #Question 1b
 def RK4(x, y0, h, f):
   K1 = f(x, y0)
-  K2 = f(x + (1/2) * h, y0 + ((h/2) * K1))
-  K3 = f(x + (1/2) * h, y0 + ((h/2) * K2))
-  K4 = f(x + (1) * h, y0 + K3)
+  K2 = f(x + (1/2) * h, y0 + ((1/2)*h * K1))
+  K3 = f(x + (1/2) * h, y0 + ((1/2)*h * K2))
+  K4 = f(x + (1) * h, y0 + h*K3)
 
   y_next = y0 + (h * (1/6)) * (K1 + 2*K2 + 2*K3 + K4)
   return y_next  
 
 def f(x, z):
-  q = x**2
-  E = 1
-  I = 1
-  array = np.array([z[1], z[2], z[3], q/(E*I)])
-  return array 
+    q = x**2
+    E = 1
+    I = 1
+    array = np.array([z[1], z[2], z[3], q/(E*I)])
+    return array 
 
 def f_eta(x, y):
   J_eta = np.array(
-                [[0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0]])
+                  [[0, 0, 1, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 1, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 1, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 1, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 1, 0],
+                  [0, 0, 0, 0, 0, 0, 0, 1],
+                  [0, 0, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 0, 0]])
   eta_next = J_eta @ y 
   return eta_next
 
@@ -88,34 +88,39 @@ def shooting_method(dt, T, n, v0, tol):
   z0 = np.array([0, 0, v0[0], v0[1]])
   v = v0
   z = z0
-
   while np.linalg.norm(E) > tol:
-    plt.clf()
-    xs_plot = []
-    ys_plot = []
+    plt.clf()  
+    x = []
+    y = []
 
+    
     z = np.array([0, 0, v[0], v[1]])
     for i in range(1, int(n)):
       z_next = RK4(ts[i], z, dt, f)
       z = z_next
-      xs_plot.append(ts[i])
-      ys_plot.append(z[0])
+      x.append(ts[i])
+      y.append(z[0])
 
-    eta0 = np.array([0, 0, 0, 0, 1, 0, 0, 1])  
-    eta = eta0
+    #step 3 
+    eta_0 = np.array([0, 0, 0, 0, 1, 0, 0, 1])
+
+    eta = eta_0
     for i in range(1, int(n)):
       eta_next = RK4(ts[i], eta, dt, f_eta)
       eta = eta_next
 
+    #step 4
+    #print(eta)
     J = np.array([[eta[0], eta[1]],
                 [eta[2], eta[3]]])
     
+    #step 5 
     E = np.array([z[0], z[1]])
     v_next = v - np.linalg.inv(J)@E
     v = v_next
-
-  print(v)
-  print(E)
-  plt.title("My Bridge :)")
-  plt.scatter(xs_plot, ys_plot, color = "pink")
-  plt.show()
+    
+  plt.title("Fully Clamped Euler-Bernoulli Beam")
+  plt.plot(x, y, color = "pink")
+  plt.ylabel("Displacement")
+  plt.xlabel("Position")
+  plt.savefig("Q1b_Beam.jpg")

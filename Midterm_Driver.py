@@ -48,7 +48,7 @@ Question 1b: Determine the numerical solution to the shooting method
 N = 6000
 dt = 1/N
 T = 1
-curv0 = np.array([5,10]) #guess of curvature
-tol = 10**(-8)
+curv0 = np.array([5, 10]) #guess of curvature
+tol = 10**(-6)
 
 shooting_method(dt, T, N, curv0, tol)
