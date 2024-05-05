@@ -4,9 +4,33 @@ import matplotlib.pyplot as plt
 import Midterm_functions
 plot_boundary = Midterm_functions.plot_boundary 
 RK3_AbsoluteStabilityRegion = Midterm_functions.RK3_AbsoluteStabilityRegion
-#find_deltatstar = Midterm_functions.find_deltatstar
-#RK4 = Midterm_functions.RK4
-shooting_method = Midterm_functions.shooting_method
+beam_shooting_method = Midterm_functions.beam_shooting_method
+beam_analytical_solution = Midterm_functions.beam_analytical_solution
+Q1_plots = Midterm_functions.Q1_plots
+
+#-----------------------------------------------------
+''' 
+Question 1 Beam Problem
+'''
+N = 6000
+dt = 1/N
+T = 1
+curv0 = np.array([5, 10]) #guess of curvature
+tol = 10**(-6)
+
+#analytical solution
+analytical_data = beam_analytical_solution(T, dt)
+#numerical solution
+numerical_data = beam_shooting_method(dt, T, N, curv0, tol)
+
+#plotting both on one figure
+Q1_plots([analytical_data["Location"], numerical_data["Location"]], [analytical_data["Displacement"], numerical_data["Displacement"]], ["Analytical Solution", "Numerical Solution"], "Displacement", "Position", "Fully Clamped Euler-Bernoulli Beam", "Q1_Beam_Comparison.jpg")
+
+#plotting beam error between analytical and numerical solution
+beam_error = abs(analytical_data["Displacement"] - numerical_data["Displacement"])
+Q1_plots([analytical_data["Location"]], [beam_error], ["Error"], "Position", "Error (log)", "Error between Analytical and Numerical Solution", "Q1d_Shooting_Error.jpg", "log")
+
+#-----------------------------------------------------
 
 '''
 Question 3b : Plot the region of Stability
@@ -20,6 +44,7 @@ plot_boundary(LMM_Boundary)
 plt.title("LMM (7) Absolute Stability Region")
 plt.savefig("Q3b_LMM_AbsoluteStabilityRegion.jpg")
 plt.clf()
+#-----------------------------------------------------
 
 '''
 Question 2b : Plot the region of absolute stability of the RK3 method
@@ -29,26 +54,19 @@ A = np.array([[0, 0, 0],
               [0, 1, 0]])
 b = np.array(([1/6],[2/3],[1/6]))
 h = np.ones_like(b)
-
-
 RK3_AbsoluteStabilityRegion(A, b, h)
 
 '''
  Question 2c: Determine the largest delta t for which the RK3 applied to dy/dt = By
 '''
+
 B = np.array([[-1, 3, -5, 7],
              [0, -2, 4, -6],
              [0, 0, -4, 6],
              [0, 0, 0, -16]])
 
-#not done
-'''
-Question 1b: Determine the numerical solution to the shooting method
-'''
-N = 6000
-dt = 1/N
-T = 1
-curv0 = np.array([5, 10]) #guess of curvature
-tol = 10**(-6)
+eigenvalues = np.linalg.eigvals(B)
+print(eigenvalues) # all real? 
+plt.scatter(eigenvalues.real, eigenvalues.imag, [1])
+plt.show()
 
-shooting_method(dt, T, N, curv0, tol)

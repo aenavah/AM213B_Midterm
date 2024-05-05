@@ -1,57 +1,10 @@
 import matplotlib.pyplot as plt 
 import numpy as np 
 from math import atan2
+import pandas as pd
 
-
-
-def plot_boundary(method):
-  '''takes in a functions "method" that takes in theta and ouputs y at theta'''
-  #plots boundary given the boundary function
-  # note: need to plt.title and plt.show after calling this function
-  plt.clf()
-  thetas = np.linspace(0, 2*np.pi)
-
-  real_vals = []
-  imag_vals = []
-  
-  #plotting actual boundary
-  for theta in thetas:
-    y = method(theta) 
-    real_part = y.real
-    imag_part = y.imag
-    real_vals.append(real_part)
-    imag_vals.append(imag_part)
-  plt.grid()
-  plt.xlabel("Re(z)")
-  plt.ylabel("Im(z)")
-  plt.plot(real_vals, imag_vals)  
-
-def RK3_S(A, b, h, x, y):
-  z = complex(x,y)
-  S = abs(np.linalg.det(np.eye(3) - (z*A) + z*(h@(b.T))))
-  return S
-
-def RK3_AbsoluteStabilityRegion(A, b, h):
-  nx, ny = (200, 200)
-  imag = np.linspace(-4, 4, nx)
-  real = np.linspace(-6, 2, ny)
-  real_v, imag_v = np.meshgrid(real, imag)
-
-  S_grid = np.ones((nx, ny))
-
-  for x_i in range(nx):
-    for y_i in range(ny):
-      boundary = RK3_S(A, b, h, real_v[x_i, y_i], imag_v[x_i, y_i])
-      S_grid[x_i, y_i] = boundary 
-
-  plt.xlabel("Re(z)")
-  plt.ylabel("Im(z)")
-  plt.contour(real_v, imag_v, S_grid, [1])
-  plt.grid()
-  plt.title("Boundary of RK3 Method")
-  plt.savefig("Q2b_RK3_Boundary.jpg")
-
-#Question 1b
+#-----------------------------------------------------
+#Question 1
 def RK4(x, y0, h, f):
   K1 = f(x, y0)
   K2 = f(x + (1/2) * h, y0 + ((1/2)*h * K1))
@@ -81,9 +34,21 @@ def f_eta(x, y):
   eta_next = J_eta @ y 
   return eta_next
 
-def shooting_method(dt, T, n, v0, tol):
+def Q1_plots(xs, ys, labels, x_label, y_label,  title, figure, yscale = "linear"):
+  plt.clf()
+  for i in range(len(xs)):
+    plt.plot(xs[i], ys[i], label = labels[i])
+  plt.legend()
+  plt.xlabel(x_label)
+  plt.ylabel(y_label)
+  plt.yscale(yscale)
+  plt.title(title)
+  plt.savefig(figure)
+
+def beam_shooting_method(dt, T, n, v0, tol):
   ts = np.arange(0, T, dt)
   ts = ts[0 : n]
+
   E = np.array([1, 1])
   z0 = np.array([0, 0, v0[0], v0[1]])
   v = v0
@@ -112,9 +77,102 @@ def shooting_method(dt, T, n, v0, tol):
     E = np.array([z[0], z[1]])
     v_next = v - np.linalg.inv(J)@E
     v = v_next
-    
-  plt.title("Fully Clamped Euler-Bernoulli Beam")
-  plt.plot(x, y, color = "pink")
-  plt.ylabel("Displacement")
-  plt.xlabel("Position")
-  plt.savefig("Q1b_Beam.jpg")
+
+  #plot  
+  Q1_plots([x], [y], ["Numerical Solution"], "Position", "Displacement",  "Fully Clamped Euler-Bernoulli Beam", "Q1b_Beam_Numerical.jpg")
+  plt.clf()
+
+  #data
+  data = {"Location": x, 
+          "Displacement": y}
+  df = pd.DataFrame(data)
+  return df
+
+def beam_analytical_solution(T, dt):
+  def bridge_analytical(x):
+    f = (1/360)*x**6 - (1/90)*x**3 + (1/120)*x**2
+    return f 
+
+  analytical_linspace = np.arange(0,T, dt)
+  sols = bridge_analytical(analytical_linspace)
+
+  #plot
+  Q1_plots([analytical_linspace], [sols], ["Analytical Solution"], "Position", "Displacement",  "Fully Clamped Euler-Bernoulli Beam", "Q1a_Beam_Analytical.jpg")
+  plt.clf()
+
+  #data storing 
+  data = {"Location": analytical_linspace, 
+          "Displacement": sols}
+  df = pd.DataFrame(data)
+  return df
+
+#-----------------------------------------------------
+#Question 3
+def plot_boundary(method):
+  '''takes in a functions "method" that takes in theta and ouputs y at theta'''
+  #plots boundary given the boundary function
+  # note: need to plt.title and plt.show after calling this function
+  plt.clf()
+  thetas = np.linspace(0, 2*np.pi)
+
+  real_vals = []
+  imag_vals = []
+  
+  #plotting actual boundary
+  for theta in thetas:
+    y = method(theta) 
+    real_part = y.real
+    imag_part = y.imag
+    real_vals.append(real_part)
+    imag_vals.append(imag_part)
+  plt.grid()
+  plt.xlabel("Re(z)")
+  plt.ylabel("Im(z)")
+  plt.plot(real_vals, imag_vals)
+#-----------------------------------------------------  
+# Question 2
+def RK3_S(A, b, h, x, y):
+  z = complex(x,y)
+  S = abs(np.linalg.det(np.eye(3) - (z*A) + z*(h@(b.T))))
+  return S
+
+def RK3_AbsoluteStabilityRegion(A, b, h):
+  nx, ny = (200, 200)
+  imag = np.linspace(-4, 4, nx)
+  real = np.linspace(-6, 2, ny)
+  real_v, imag_v = np.meshgrid(real, imag)
+
+  S_grid = np.ones((nx, ny))
+
+  #iterate through y values for each fixed x
+  for x_i in range(nx):
+    for y_i in range(ny):
+      boundary = RK3_S(A, b, h, real_v[x_i, y_i], imag_v[x_i, y_i])
+      S_grid[x_i, y_i] = boundary 
+      #print(S_grid)
+  plt.xlabel("Re(z)")
+  plt.ylabel("Im(z)")
+  contour = plt.contourf(real_v, imag_v, S_grid)
+  plt.colorbar()
+  plt.grid()
+  plt.title("Boundary of RK3 Method")
+  plt.savefig("Q2b_RK3_Boundary.jpg")
+  plt.show()
+
+  # Extract x, y values for the contour at height 1
+  contour_x = []
+  contour_y = []
+  for line in contour.collections[0].get_paths():
+      vertices = line.vertices
+      contour_x.extend(vertices[:, 0])
+      contour_y.extend(vertices[:, 1])
+
+  plt.clf()
+  plt.title("Boundary of RK3 Method")
+  plt.savefig("Q2b_RK3_Boundary.jpg")
+  
+  plt.xlim(-4, 4)
+  plt.ylim(-6, 2)
+  
+  plt.plot(contour_x, contour_y)
+  plt.show()
