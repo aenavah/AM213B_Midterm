@@ -43,6 +43,7 @@ def Q1_plots(xs, ys, labels, x_label, y_label,  title, figure, yscale = "linear"
   plt.ylabel(y_label)
   plt.yscale(yscale)
   plt.title(title)
+  plt.grid()
   plt.savefig(figure)
 
 def beam_shooting_method(dt, T, n, v0, tol):
@@ -78,6 +79,7 @@ def beam_shooting_method(dt, T, n, v0, tol):
     v_next = v - np.linalg.inv(J)@E
     v = v_next
 
+  print(v)
   #plot  
   Q1_plots([x], [y], ["Numerical Solution"], "Position", "Displacement",  "Fully Clamped Euler-Bernoulli Beam", "Q1b_Beam_Numerical.jpg")
   plt.clf()
@@ -137,7 +139,7 @@ def RK3_S(A, b, h, x, y):
   return S
 
 def RK3_AbsoluteStabilityRegion(A, b, h):
-  nx, ny = (200, 200)
+  nx, ny = (200+1, 200+1)
   imag = np.linspace(-4, 4, nx)
   real = np.linspace(-6, 2, ny)
   real_v, imag_v = np.meshgrid(real, imag)
@@ -155,24 +157,59 @@ def RK3_AbsoluteStabilityRegion(A, b, h):
   contour = plt.contourf(real_v, imag_v, S_grid)
   plt.colorbar()
   plt.grid()
-  plt.title("Boundary of RK3 Method")
-  plt.savefig("Q2b_RK3_Boundary.jpg")
-  plt.show()
+  plt.title("Contours of RK3 Method")
+  plt.savefig("Q2b_RK3_Contours.jpg")
+  #plt.show()
 
   # Extract x, y values for the contour at height 1
   contour_x = []
   contour_y = []
   for line in contour.collections[0].get_paths():
-      vertices = line.vertices
-      contour_x.extend(vertices[:, 0])
-      contour_y.extend(vertices[:, 1])
+    vertices = line.vertices
+    contour_x.extend(vertices[:, 0])
+    contour_y.extend(vertices[:, 1])
 
   plt.clf()
   plt.title("Boundary of RK3 Method")
-  plt.savefig("Q2b_RK3_Boundary.jpg")
+  #plt.savefig("Q2b_RK3_Boundary.jpg")
   
-  plt.xlim(-4, 4)
-  plt.ylim(-6, 2)
+  plt.ylim(-4, 4)
+  plt.xlim(-6, 2)
   
+  plt.xlabel("Re(z)")
+  plt.ylabel("Im(z)")
   plt.plot(contour_x, contour_y)
-  plt.show()
+  #print(min(contour_x))
+  min_real = min(contour_x)
+  return min_real 
+
+#Q2c
+def RK3_delta_tstar(B, min_real):
+  eigenvalues = np.linalg.eigvals(B)
+  for dt in np.arange(1, 0, -.000001):
+    need_toscale = min(eigenvalues)
+    scaled_eig = dt*need_toscale
+    if abs(scaled_eig) < abs(min_real):
+      scaled_eigens = []
+      dtstar = dt
+      for eig in eigenvalues:
+        new_eigs = dt*eig
+        scaled_eigens.append(new_eigs)
+      plt.grid()
+      plt.scatter(scaled_eigens, [0,0,0,0], s = 40, facecolors = "none", edgecolors = "r", label = "Eigenvalues")
+      plt.savefig("Q2b_ScaledEigenvalues.jpg")
+      plt.clf()
+      return dtstar
+      break
+
+def Q2d_RK3_f(B, x):
+  return B @ x
+
+def Q2d_RK3(A, u0, dx):
+    f = Q2d_RK3_f 
+    '''RK method from HW1'''
+    K1 = f(A, u0)
+    K2 = f(A + (1/2) * dx , u0 + ((1/4) * dx * K1) + ((1/4) * dx * K2))
+    K3 = f(A + dx, u0 + dx * K2)
+    u_next = u0 + (dx * (1/6)) * (K1 + 4 * K2 + K3)
+    return u_next
