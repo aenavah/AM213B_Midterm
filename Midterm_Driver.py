@@ -69,13 +69,19 @@ B = np.array([[-1, 3, -5, 7],
 delta_tstar = RK3_delta_tstar(B, min_real)
 print("delta tstar: " + str(delta_tstar))
 
-# n = 10
-# u = np.zeros((n , 4))
-# u[0] = np.array([1,1,1,1])
-# for i in np.arange(0, n, delta_tstar):
-#   u_next = Q2d_RK3(B, u[i-1], dt)
-#   u[i] = u_next
-#   u_last = u_next
+T = 10
+dt = delta_tstar
+n = int(T/dt)
+
+ts = np.arange(0, T, dt)
+ts = ts[0:n]
+
+u = np.zeros((n , 4))
+u[0] = np.array([1,1,1,1])
+for i in range(1, n):
+  u_next = Q2d_RK3(B, u[i-1], dt)
+  u[i] = u_next
+  u_last = u_next
 
 
 

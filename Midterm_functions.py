@@ -208,8 +208,9 @@ def Q2d_RK3_f(B, x):
 def Q2d_RK3(A, u0, dx):
     f = Q2d_RK3_f 
     '''RK method from HW1'''
+    K2_imp = np.dot(np.linalg.inv(np.eye*(4)-A*(dx/6)), (np.dot(A, u0)))
     K1 = f(A, u0)
-    K2 = f(A + (1/2) * dx , u0 + ((1/4) * dx * K1) + ((1/4) * dx * K2))
+    K2 = f(A + (1/2) * dx , u0 + ((1/4) * dx * K1) + ((1/4) * dx * K2_imp))
     K3 = f(A + dx, u0 + dx * K2)
     u_next = u0 + (dx * (1/6)) * (K1 + 4 * K2 + K3)
     return u_next
