@@ -135,7 +135,7 @@ def plot_boundary(method):
 # Question 2
 def RK3_S(A, b, h, x, y):
   z = complex(x,y)
-  S = abs(np.linalg.det(np.eye(3) - (z*A) + z*(h@(b.T))))
+  S = (abs(np.linalg.det(np.eye(3) - (z*A) + z*(h@(b.T)))))/(np.linalg.det(np.eye(3) - A*z))
   return S
 
 def RK3_AbsoluteStabilityRegion(A, b, h):
