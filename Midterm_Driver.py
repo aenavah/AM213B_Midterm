@@ -66,12 +66,16 @@ B = np.array([[-1, 3, -5, 7],
              [0, 0, -4, 6],
              [0, 0, 0, -16]])
 
-delta_tstar = RK3_delta_tstar(B, min_real)
+delta_tstar, typee = RK3_delta_tstar(B, min_real)
 print("delta tstar: " + str(delta_tstar))
 
-T = 10
-dt = delta_tstar
+T = 15
+dt = delta_tstar 
+diff = -0.1
+dt = delta_tstar + diff
+
 n = int(T/dt)
+
 
 ts = np.arange(0, T, dt)
 ts = ts[0:n]
@@ -82,6 +86,18 @@ for i in range(1, n):
   u_next = Q2d_RK3(B, u[i-1], dt)
   u[i] = u_next
   u_last = u_next
+
+plt.plot(ts, u[:,0], label = "dy1")  
+plt.plot(ts, u[:,1], label = "dy2") 
+plt.plot(ts, u[:,2], label = "dy3") 
+plt.plot(ts, u[:,3], label = "dy4") 
+
+plt.legend()
+plt.grid()
+plt.title(str(typee) +  "RK3 method with dt=dt* + "+str(diff))
+print("type: " + str(typee))
+plt.savefig("Q2d_dt=dtstar=" + str(delta_tstar) +"+" + str(diff) + "_" + typee + "_.jpg")
+#plt.show()
 
 
 

@@ -79,7 +79,6 @@ def beam_shooting_method(dt, T, n, v0, tol):
     v_next = v - np.linalg.inv(J)@E
     v = v_next
 
-  print(v)
   #plot  
   Q1_plots([x], [y], ["Numerical Solution"], "Position", "Displacement",  "Fully Clamped Euler-Bernoulli Beam", "Q1b_Beam_Numerical.jpg")
   plt.clf()
@@ -134,9 +133,22 @@ def plot_boundary(method):
 #-----------------------------------------------------  
 # Question 2
 def RK3_S(A, b, h, x, y):
+  A = np.copy(A)
   z = complex(x,y)
-  S = (abs(np.linalg.det(np.eye(3) - (z*A) + z*(h@(b.T)))))/(np.linalg.det(np.eye(3) - A*z))
-  return S
+
+  size = np.shape(A)
+  I = np.eye(size[0])
+  num = np.linalg.det(I - z*A + z*(h@(b.T)))
+  den = np.linalg.det(I - z*A)
+  S = num/den
+  S = abs(S)
+  S = abs(num)
+  global typee
+  if S == abs(num):
+    typee = "explicit"
+  else: 
+    typee = "implicit"
+  return S, typee
 
 def RK3_AbsoluteStabilityRegion(A, b, h):
   nx, ny = (200+1, 200+1)
@@ -149,17 +161,15 @@ def RK3_AbsoluteStabilityRegion(A, b, h):
   #iterate through y values for each fixed x
   for x_i in range(nx):
     for y_i in range(ny):
-      boundary = RK3_S(A, b, h, real_v[x_i, y_i], imag_v[x_i, y_i])
+      boundary, typee = RK3_S(A, b, h, real_v[x_i, y_i], imag_v[x_i, y_i])
       S_grid[x_i, y_i] = boundary 
-      #print(S_grid)
   plt.xlabel("Re(z)")
   plt.ylabel("Im(z)")
   contour = plt.contourf(real_v, imag_v, S_grid)
   plt.colorbar()
   plt.grid()
   plt.title("Contours of RK3 Method")
-  plt.savefig("Q2b_RK3_Contours.jpg")
-  #plt.show()
+  plt.savefig("Q2b_RK3_Contours_" + typee+ ".jpg")
 
   # Extract x, y values for the contour at height 1
   contour_x = []
@@ -179,14 +189,13 @@ def RK3_AbsoluteStabilityRegion(A, b, h):
   plt.xlabel("Re(z)")
   plt.ylabel("Im(z)")
   plt.plot(contour_x, contour_y)
-  #print(min(contour_x))
   min_real = min(contour_x)
-  return min_real 
+  return min_real
 
 #Q2c
 def RK3_delta_tstar(B, min_real):
   eigenvalues = np.linalg.eigvals(B)
-  for dt in np.arange(1, 0, -.000001):
+  for dt in np.arange(1, 0, -.0000001):
     need_toscale = min(eigenvalues)
     scaled_eig = dt*need_toscale
     if abs(scaled_eig) < abs(min_real):
@@ -197,18 +206,18 @@ def RK3_delta_tstar(B, min_real):
         scaled_eigens.append(new_eigs)
       plt.grid()
       plt.scatter(scaled_eigens, [0,0,0,0], s = 40, facecolors = "none", edgecolors = "r", label = "Eigenvalues")
-      plt.savefig("Q2b_ScaledEigenvalues.jpg")
+      plt.savefig("Q2b_ScaledEigenvalues" + typee + ".jpg")
       plt.clf()
-      return dtstar
-      break
+      return dtstar, typee
+
 
 def Q2d_RK3_f(B, x):
   return B @ x
 
 def Q2d_RK3(A, u0, dx):
     f = Q2d_RK3_f 
-    '''RK method from HW1'''
-    K2_imp = np.dot(np.linalg.inv(np.eye*(4)-A*(dx/6)), (np.dot(A, u0)))
+    imp_matrix = np.linalg.inv(np.eye(4)-A*(dx/6))
+    K2_imp = np.dot(imp_matrix, (np.dot(A, u0)))
     K1 = f(A, u0)
     K2 = f(A + (1/2) * dx , u0 + ((1/4) * dx * K1) + ((1/4) * dx * K2_imp))
     K3 = f(A + dx, u0 + dx * K2)
