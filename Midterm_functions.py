@@ -142,13 +142,8 @@ def RK3_S(A, b, h, x, y):
   den = np.linalg.det(I - z*A)
   S = num/den
   S = abs(S)
-  S = abs(num)
-  global typee
-  if S == abs(num):
-    typee = "explicit"
-  else: 
-    typee = "implicit"
-  return S, typee
+
+  return S
 
 def RK3_AbsoluteStabilityRegion(A, b, h):
   nx, ny = (200+1, 200+1)
@@ -161,7 +156,7 @@ def RK3_AbsoluteStabilityRegion(A, b, h):
   #iterate through y values for each fixed x
   for x_i in range(nx):
     for y_i in range(ny):
-      boundary, typee = RK3_S(A, b, h, real_v[x_i, y_i], imag_v[x_i, y_i])
+      boundary= RK3_S(A, b, h, real_v[x_i, y_i], imag_v[x_i, y_i])
       S_grid[x_i, y_i] = boundary 
   plt.xlabel("Re(z)")
   plt.ylabel("Im(z)")
@@ -169,7 +164,7 @@ def RK3_AbsoluteStabilityRegion(A, b, h):
   plt.colorbar()
   plt.grid()
   plt.title("Contours of RK3 Method")
-  plt.savefig("Q2b_RK3_Contours_" + typee+ ".jpg")
+  plt.savefig("Q2b_RK3_Contours.jpg")
 
   # Extract x, y values for the contour at height 1
   contour_x = []
@@ -206,9 +201,9 @@ def RK3_delta_tstar(B, min_real):
         scaled_eigens.append(new_eigs)
       plt.grid()
       plt.scatter(scaled_eigens, [0,0,0,0], s = 40, facecolors = "none", edgecolors = "r", label = "Eigenvalues")
-      plt.savefig("Q2b_ScaledEigenvalues" + typee + ".jpg")
+      plt.savefig("Q2b_ScaledEigenvalues" + ".jpg")
       plt.clf()
-      return dtstar, typee
+      return dtstar
 
 
 def Q2d_RK3_f(B, x):
